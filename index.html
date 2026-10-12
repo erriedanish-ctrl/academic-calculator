@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Academic Calculator</title>
+<style>
+:root{--blue:#2563eb;--navy:#172554;--bg:#f3f6fc;--line:#dbe3f0}*{box-sizing:border-box}
+body{margin:0;font-family:Arial, sans-serif;background:var(--bg);color:#172033}
+header{padding:30px max(18px,calc((100% - 1000px)/2));background:linear-gradient(120deg,var(--navy),var(--blue));color:white}
+header h1{margin:0 0 8px}header p{margin:0;color:#dbeafe}
+main{max-width:1000px;margin:24px auto;padding:0 16px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+button{cursor:pointer;border:0;border-radius:9px;padding:11px 14px;font-weight:bold}.tab{background:white;border:1px solid var(--line)}.tab.active,.primary{background:var(--blue);color:white}.secondary{background:#eaf0ff;color:#1d4ed8}
+.panel{display:none;background:white;border:1px solid var(--line);border-radius:16px;padding:20px}.panel.active{display:block}
+.muted{color:#64748b;font-size:.92rem}.row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin:10px 0}
+input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}.remove{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.result{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-top:14px}.big{font-size:2rem;font-weight:bold;color:#1d4ed8}
+footer{text-align:center;padding:24px;color:#64748b;font-size:.85rem}
+@media(max-width:600px){.row{grid-template-columns:1fr 1fr}.row .remove{grid-column:2}.panel{padding:14px}}
+</style></head>
+<body>
+<header><h1>🎓 Academic Calculator</h1><p>Kalkulator IPS, IPK, dan nilai akhir mahasiswa.</p></header>
+<main>
+<div class="tabs"><button class="tab active" data-id="ips">📘 Kalkulator IPS</button><button class="tab" data-id="ipk">🎓 Kalkulator IPK</button><button class="tab" data-id="akhir">🧮 Nilai Akhir</button></div>
+<section id="ips" class="panel active"><h2>Kalkulator IPS</h2><p class="muted">Skala contoh: A=4, AB=3.5, B=3, BC=2.5, C=2, D=1, E=0. Sesuaikan dengan aturan kampus.</p><div id="courses"></div><div class="actions"><button class="secondary" id="addCourse">+ Tambah mata kuliah</button><button class="primary" id="calcIps">Hitung IPS</button></div><div id="ipsOut"></div></section>
+<section id="ipk" class="panel"><h2>Kalkulator IPK</h2><p class="muted">Masukkan IPS dan total SKS setiap semester.</p><div id="semesters"></div><div class="actions"><button class="secondary" id="addSem">+ Tambah semester</button><button class="primary" id="calcIpk">Hitung IPK</button></div><div id="ipkOut"></div></section>
+<section id="akhir" class="panel"><h2>Kalkulator Nilai Akhir</h2><p class="muted">Total bobot harus tepat 100%, sesuai RPS/dosen.</p><div id="components"></div><div class="actions"><button class="secondary" id="addComp">+ Tambah komponen</button><button class="primary" id="calcFinal">Hitung nilai akhir</button></div><div id="finalOut"></div></section>
+</main><footer>Academic Calculator · Perhitungan dilakukan di browser; tidak ada data yang dikirim ke server.</footer>
+<script>
+const gp={A:4,AB:3.5,B:3,BC:2.5,C:2,D:1,E:0};
+function inp(ph,val,type='text',min,max,step){let x=document.createElement('input');x.placeholder=ph;x.value=val;x.type=type;if(min!==undefined)x.min=min;if(max!==undefined)x.max=max;if(step!==undefined)x.step=step;return x}
+function rem(row){let b=document.createElement('button');b.className='remove';b.textContent='Hapus';b.onclick=()=>row.remove();return b}
+function row(container,vals,kind){let r=document.createElement('div');r.className='row';if(kind==='course'){let n=inp('Mata kuliah',vals[0]);let s=document.createElement('select');Object.keys(gp).forEach(g=>{let o=document.createElement('option');o.value=g;o.textContent=g+' ('+gp[g].toFixed(2)+')';s.append(o)});s.value=vals[1];let c=inp('SKS',vals[2],'number',1,12,1);r.append(n,s,c,rem(r))}
+else if(kind==='sem'){r.append(inp('Semester',vals[0]),inp('IPS (0–4)',vals[1],'number',0,4,.01),inp('Total SKS',vals[2],'number',1,60,1),rem(r))}
+else{r.append(inp('Komponen',vals[0]),inp('Nilai 0–100',vals[1],'number',0,100,.01),inp('Bobot (%)',vals[2],'number',0,100,.01),rem(r))}
+document.getElementById(container).append(r)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===b.dataset.id))});
+document.getElementById('addCourse').onclick=()=>row('courses',['','A',3],'course');document.getElementById('addSem').onclick=()=>row('semesters',['',3.5,20],'sem');document.getElementById('addComp').onclick=()=>row('components',['',80,25],'comp');
+row('courses',['Matematika','A',3],'course');row('courses',['Fisika','AB',2],'course');row('courses',['Pemrograman','B',3],'course');
+row('semesters',['Semester 1',3.5,20],'sem');row('semesters',['Semester 2',3.65,22],'sem');
+row('components',['Tugas',85,20],'comp');row('components',['Kuis',80,10],'comp');row('components',['UTS',78,30],'comp');row('components',['UAS',90,40],'comp');
+document.getElementById('calcIps').onclick=()=>{let s=0,m=0;document.querySelectorAll('#courses .row').forEach(r=>{let c=Number(r.children[2].value);if(c>0){s+=c;m+=gp[r.children[1].value]*c}});document.getElementById('ipsOut').innerHTML=s?'<div class="result">IPS<div class="big">'+(m/s).toFixed(2)+'</div>Total SKS: '+s+'</div>':'Tambahkan mata kuliah dengan SKS valid.'};
+document.getElementById('calcIpk').onclick=()=>{let s=0,m=0;document.querySelectorAll('#semesters .row').forEach(r=>{let i=Number(r.children[1].value),c=Number(r.children[2].value);if(r.children[0].value.trim()&&i>=0&&i<=4&&c>0){s+=c;m+=i*c}});document.getElementById('ipkOut').innerHTML=s?'<div class="result">IPK Kumulatif<div class="big">'+(m/s).toFixed(2)+'</div>Total SKS: '+s+'</div>':'Masukkan data semester yang valid.'};
+document.getElementById('calcFinal').onclick=()=>{let w=0,n=0;document.querySelectorAll('#components .row').forEach(r=>{let score=Number(r.children[1].value),weight=Number(r.children[2].value);if(r.children[0].value.trim()&&score>=0&&score<=100&&weight>=0&&weight<=100){w+=weight;n+=score*weight/100}});document.getElementById('finalOut').innerHTML=Math.abs(w-100)<.001?'<div class="result">Nilai akhir<div class="big">'+n.toFixed(2)+'/100</div><p class="muted">Batas nilai huruf bergantung pada aturan kampus.</p></div>':'<p class="muted">Total bobot sekarang '+w.toFixed(2)+'%. Sesuaikan menjadi 100%.</p>'};
+</script></body></html>
